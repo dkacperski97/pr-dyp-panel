@@ -1,12 +1,28 @@
 import React from "react";
-import CssBaseline from "@material-ui/core/CssBaseline";
+import {
+    BrowserRouter as Router,
+    Route,
+    Switch,
+    Redirect,
+} from "react-router-dom";
+import PageEditor from "./pages/PageEditor/PageEditor";
+import SiteInitializer from "./pages/SiteInitializer/SiteInitializer";
 
 const App: React.FC = () => {
     return (
-        <>
-            <CssBaseline />
-			<div>TODO</div>
-        </>
+        <Router>
+            <Switch>
+                <Route exact path="/">
+                    <Redirect to="/init" />
+                </Route>
+                <Route path="/init">
+                    <SiteInitializer />
+                </Route>
+                <Route path="/pages">
+                    <PageEditor />
+                </Route>
+            </Switch>
+        </Router>
     );
 };
 
