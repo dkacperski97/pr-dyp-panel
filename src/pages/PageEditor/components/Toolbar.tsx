@@ -4,14 +4,7 @@ import Paper from "@material-ui/core/Paper";
 import List from '@material-ui/core/List';
 import ListItem from "@material-ui/core/ListItem";
 import ListItemText from '@material-ui/core/ListItemText';
-
-const components = [
-    "None",
-    "Atria",
-    "Callisto",
-    "Dione",
-    "Ganymede",
-];
+import components from 'components';
 
 const useStyles = makeStyles((theme: Theme) =>
     createStyles({
@@ -29,8 +22,8 @@ const Toolbar: React.FC = () => {
         <Paper className={classes.paper}>
             <List>
                 {components.map((component) => (
-                    <ListItem button key={component}>
-                        <ListItemText primary={component} />
+                    <ListItem button key={component.id}>
+                        <ListItemText primary={component.id} />
                     </ListItem>
                 ))}
             </List>

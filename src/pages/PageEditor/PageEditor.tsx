@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import Drawer from "@material-ui/core/Drawer";
 import Divider from "@material-ui/core/Divider";
@@ -8,8 +8,10 @@ import ListItemText from "@material-ui/core/ListItemText";
 import ListItemIcon from "@material-ui/core/ListItemIcon";
 import InboxIcon from "@material-ui/icons/MoveToInbox";
 import MailIcon from "@material-ui/icons/Mail";
-import Toolbar from "./components/Toolbar/Toolbar";
-import LayoutEditor from './components/LayoutEditor/LayoutEditor';
+import Toolbar from "./components/Toolbar";
+import Page from "../../types/page";
+import Layout from "../../types/layout";
+import ComponentContainer from './components/ComponentContainer';
 
 const drawerWidth = 240;
 
@@ -41,6 +43,17 @@ const useStyles = makeStyles((theme: Theme) =>
 
 const PagesEditor: React.FC = () => {
     const classes = useStyles();
+    const [page, setPage] = useState<Page>({
+        uniqueName: "",
+        inputs: [],
+        layout: {
+            componentId: "main",
+            config: [],
+            children: [],
+        },
+    });
+    const setLayout = (layout: (prev: Layout) => Layout) =>
+        setPage((prev) => ({ ...prev, layout: layout(prev.layout) }));
 
     return (
         <div className={classes.root}>
@@ -83,7 +96,7 @@ const PagesEditor: React.FC = () => {
                 </List>
             </Drawer>
             <main className={classes.content}>
-                <LayoutEditor />
+				<ComponentContainer layout={page.layout} setLayout={setLayout} />
             </main>
             <Toolbar />
         </div>
