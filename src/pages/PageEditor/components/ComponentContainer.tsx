@@ -1,7 +1,7 @@
 import React from "react";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import Layout from "../../../types/layout";
-import components from "components";
+import components, { Props } from "components";
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import Typography from "@material-ui/core/Typography";
@@ -35,11 +35,25 @@ const ComponentContainer: React.FC<ComponentContainerProps> = ({
             ),
         }));
 
+    const setChild: Props["setChild"] = (componentId, index) => {
+        const helper = (prev: Layout[]) => {
+            let prevCopy = prev.slice();
+            prevCopy[index] = {
+                componentId,
+                config: [],
+                children: []
+            }
+            return prevCopy;
+        }
+        setLayout(prev => ({...prev, children: helper(prev.children) }))
+    };
+
     return componentObject ? (
         <div className={classes.container}>
-            <componentObject.component>
+            <componentObject.component config={layout.config} setChild={setChild} >
                 {layout.children.map((child, i) => (
                     <ComponentContainer
+                        key={i}
                         layout={child}
                         setLayout={(childLayout) =>
                             setChildLayout(childLayout, i)
