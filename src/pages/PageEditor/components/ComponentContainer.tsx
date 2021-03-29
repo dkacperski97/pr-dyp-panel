@@ -9,55 +9,78 @@ import Typography from "@material-ui/core/Typography";
 const useStyles = makeStyles((theme: Theme) =>
     createStyles({
         container: {
-            border: "solid 2px red",
+            // border: "solid 2px red",
         },
     })
 );
 
 type ComponentContainerProps = {
-    layout: Layout;
-    setLayout: (layout: (prev: Layout) => Layout) => void;
+    id: string;
+    layout: Layout[];
+    setLayout: (layout: (prev: Layout[]) => Layout[]) => void;
 };
 const ComponentContainer: React.FC<ComponentContainerProps> = ({
+    id,
     layout,
     setLayout,
 }) => {
     const classes = useStyles();
-    const componentObject = components.find((c) => c.id === layout.componentId);
-    const setChildLayout = (
-        childLayout: (prev: Layout) => Layout,
-        index: number
-    ) =>
-        setLayout((prev: Layout) => ({
-            ...prev,
-            children: prev.children.map((child, i) =>
-                i === index ? childLayout(child) : child
-            ),
-        }));
-
+    const currentComponent = layout.find((c) => c.id === id);
+    if (!currentComponent) {
+        return null;
+    }
+    const componentObject = components.find(
+        (c) => c.id === currentComponent.componentId
+    );
     const setChild: Props["setChild"] = (componentId, index) => {
-        const helper = (prev: Layout[]) => {
+        const addChildId = (prev: string[], id: string) => {
             let prevCopy = prev.slice();
-            prevCopy[index] = {
-                componentId,
-                config: [],
-                children: []
-            }
+            prevCopy[index] = id;
             return prevCopy;
+        };
+        const removeChildren = (newLayout: Layout[], childId: string) => {
+            let index = newLayout.findIndex((l) => l.id === childId);
+            newLayout[index].children.forEach((subchildId) => removeChildren(newLayout, subchildId));
+            newLayout.splice(index, 1);
         }
-        setLayout(prev => ({...prev, children: helper(prev.children) }))
+        const getNewLayout = (prev: Layout[]) => {
+            const parent = prev.find((p) => p.id === id);
+            if (!parent) {
+                console.log(prev,  id);
+                throw new Error("Parent not found.");
+            }
+            let newLayout = prev.slice();
+            if (parent.children[index] !== undefined) {
+                removeChildren(newLayout, parent.children[index]);
+            }
+            const newComponent = new Layout(componentId);
+            const parentIndex = newLayout.findIndex((p) => p.id === id);
+            newLayout[parentIndex] = {
+                ...parent,
+                children: addChildId(
+                    parent.children,
+                    newComponent.id
+                ),
+            };
+            newLayout.push(newComponent);
+            console.log(prev, newLayout);
+            return newLayout;
+        };
+        setLayout((prev) => getNewLayout(prev));
     };
 
     return componentObject ? (
         <div className={classes.container}>
-            <componentObject.component config={layout.config} setChild={setChild} >
-                {layout.children.map((child, i) => (
+            <componentObject.component
+                config={currentComponent.config}
+                setChild={setChild}
+            >
+                {currentComponent.children.map((child, i) => (
                     <ComponentContainer
-                        key={i}
-                        layout={child}
-                        setLayout={(childLayout) =>
-                            setChildLayout(childLayout, i)
-                        }
+                        key={child}
+                        id={child}
+                        layout={layout}
+                        setLayout={setLayout}
                     />
                 ))}
             </componentObject.component>

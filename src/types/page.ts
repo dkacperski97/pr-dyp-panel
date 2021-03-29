@@ -3,7 +3,7 @@ import Layout from './layout';
 type Page = {
 	uniqueName: string;
 	inputs: string[];
-	layout: Layout;
+	layout: Layout[];
 }
 
 export default Page;

@@ -46,13 +46,10 @@ const PagesEditor: React.FC = () => {
     const [page, setPage] = useState<Page>({
         uniqueName: "",
         inputs: [],
-        layout: {
-            componentId: "main",
-            config: [],
-            children: [],
-        },
+        layout: [new Layout("main")]
     });
-    const setLayout = (layout: (prev: Layout) => Layout) =>
+    const mainId = page.layout.find(component => component.componentId === "main")!.id;
+    const setLayout = (layout: (prev: Layout[]) => Layout[]) =>
         setPage((prev) => ({ ...prev, layout: layout(prev.layout) }));
 
     return (
@@ -96,7 +93,7 @@ const PagesEditor: React.FC = () => {
                 </List>
             </Drawer>
             <main className={classes.content}>
-				<ComponentContainer layout={page.layout} setLayout={setLayout} />
+				<ComponentContainer id={mainId} layout={page.layout} setLayout={setLayout} />
             </main>
             <Toolbar />
         </div>
