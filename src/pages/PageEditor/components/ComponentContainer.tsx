@@ -1,7 +1,8 @@
-import React from "react";
+import React, { Suspense } from "react";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import Layout from "../../../types/layout";
-import components, { Props } from "components";
+import components from "components";
+import type { SetChild } from "components/types/props";
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import Typography from "@material-ui/core/Typography";
@@ -19,20 +20,14 @@ type ComponentContainerProps = {
     layout: Layout[];
     setLayout: (layout: (prev: Layout[]) => Layout[]) => void;
 };
-const ComponentContainer: React.FC<ComponentContainerProps> = ({
-    id,
-    layout,
-    setLayout,
-}) => {
+const ComponentContainer: React.FC<ComponentContainerProps> = ({ id, layout, setLayout }) => {
     const classes = useStyles();
     const currentComponent = layout.find((c) => c.id === id);
     if (!currentComponent) {
         return null;
     }
-    const componentObject = components.find(
-        (c) => c.id === currentComponent.componentId
-    );
-    const setChild: Props["setChild"] = (componentId, index) => {
+    const componentObject = components.find((c) => c.id === currentComponent.componentId);
+    const setChild: SetChild = (componentId: any, index: any) => {
         const addChildId = (prev: string[], id: string) => {
             let prevCopy = prev.slice();
             prevCopy[index] = id;
@@ -40,62 +35,72 @@ const ComponentContainer: React.FC<ComponentContainerProps> = ({
         };
         const removeChildren = (newLayout: Layout[], childId: string) => {
             let index = newLayout.findIndex((l) => l.id === childId);
-            newLayout[index].children.forEach((subchildId) => removeChildren(newLayout, subchildId));
+            newLayout[index].children.forEach((subchildId) =>
+                removeChildren(newLayout, subchildId)
+            );
             newLayout.splice(index, 1);
-        }
+        };
         const getNewLayout = (prev: Layout[]) => {
             const parent = prev.find((p) => p.id === id);
             if (!parent) {
-                console.log(prev,  id);
+                console.log(prev, id);
                 throw new Error("Parent not found.");
             }
             let newLayout = prev.slice();
             if (parent.children[index] !== undefined) {
                 removeChildren(newLayout, parent.children[index]);
             }
-            const newComponent = new Layout(componentId);
+            const newComponentLayout = new Layout(componentId);
+            const newComponent = components.find((c) => c.id === componentId)
+            if (newComponent) {
+                newComponent.options.forEach(option => {
+                    if (option.default !== undefined) {
+                        newComponentLayout.config[option.id] = option.default;
+                    }
+                })
+            }
             const parentIndex = newLayout.findIndex((p) => p.id === id);
             newLayout[parentIndex] = {
                 ...parent,
-                children: addChildId(
-                    parent.children,
-                    newComponent.id
-                ),
+                children: addChildId(parent.children, newComponentLayout.id),
             };
-            newLayout.push(newComponent);
+            newLayout.push(newComponentLayout);
             console.log(prev, newLayout);
             return newLayout;
         };
         setLayout((prev) => getNewLayout(prev));
     };
 
-    return componentObject ? (
+    if (!componentObject) {
+        return (
+            <Card>
+                <CardContent>
+                    <Typography variant="h4" component="h2">
+                        Error
+                    </Typography>
+                    <Typography variant="subtitle1" component="p">
+                        A component with the given id cannot be found.
+                    </Typography>
+                </CardContent>
+            </Card>
+        );
+    }
+    const ComponentObjectComponent = React.lazy(componentObject.component);
+    return (
         <div className={classes.container}>
-            <componentObject.component
-                config={currentComponent.config}
-                setChild={setChild}
-            >
-                {currentComponent.children.map((child, i) => (
-                    <ComponentContainer
-                        key={child}
-                        id={child}
-                        layout={layout}
-                        setLayout={setLayout}
-                    />
-                ))}
-            </componentObject.component>
+            <Suspense fallback={<div>Loading...</div>}>
+                <ComponentObjectComponent config={currentComponent.config} setChild={setChild}>
+                    {currentComponent.children.map((child, i) => (
+                        <ComponentContainer
+                            key={child}
+                            id={child}
+                            layout={layout}
+                            setLayout={setLayout}
+                        />
+                    ))}
+                </ComponentObjectComponent>
+            </Suspense>
         </div>
-    ) : (
-        <Card>
-            <CardContent>
-                <Typography variant="h4" component="h2">
-                    Error
-                </Typography>
-                <Typography variant="subtitle1" component="p">
-                    A component with the given id cannot be found.
-                </Typography>
-            </CardContent>
-        </Card>
     );
 };
 
