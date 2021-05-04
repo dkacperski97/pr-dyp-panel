@@ -5,6 +5,8 @@ import List from "@material-ui/core/List";
 import ListItem from "@material-ui/core/ListItem";
 import ListItemText from "@material-ui/core/ListItemText";
 import components from "components";
+// TODO:
+// import type Component from "components/types/component";
 import { useDrag } from "react-dnd";
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -17,12 +19,12 @@ const useStyles = makeStyles((theme: Theme) =>
 );
 
 type ToolbarItemProps = {
-    component: any;
+    component: any; // Component;
 };
 const ToolbarItem: React.FC<ToolbarItemProps> = ({ component }) => {
     const [collected, drag] = useDrag(
         () => ({
-            type: "component",
+            type: component.type,
             item: { id: component.id },
         }),
         []

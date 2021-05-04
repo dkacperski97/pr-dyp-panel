@@ -2,10 +2,10 @@ import React, { Suspense } from "react";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import Layout from "../../../types/layout";
 import components from "components";
-import type { SetChild } from "components/types/props";
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import Typography from "@material-ui/core/Typography";
+import DropTarget from "./DropTarget";
 
 const useStyles = makeStyles((theme: Theme) =>
     createStyles({
@@ -14,6 +14,8 @@ const useStyles = makeStyles((theme: Theme) =>
         },
     })
 );
+
+export type SetChild = (componentId: string, index: number) => void;
 
 type ComponentContainerProps = {
     id: string;
@@ -86,17 +88,20 @@ const ComponentContainer: React.FC<ComponentContainerProps> = ({ id, layout, set
         );
     }
     const ComponentObjectComponent = React.lazy(componentObject.component);
+    const childrenTypes = componentObject.getChildrenTypes?.(currentComponent.config) || [];
     return (
         <div className={classes.container}>
             <Suspense fallback={<div>Loading...</div>}>
-                <ComponentObjectComponent config={currentComponent.config} setChild={setChild}>
-                    {currentComponent.children.map((child, i) => (
+                <ComponentObjectComponent config={currentComponent.config}>
+                    {childrenTypes.map((childTypes, i) => currentComponent.children[i] ? (
                         <ComponentContainer
-                            key={child}
-                            id={child}
+                            key={currentComponent.children[i]}
+                            id={currentComponent.children[i]}
                             layout={layout}
                             setLayout={setLayout}
                         />
+                    ) : (
+                        <DropTarget key={i} index={i} setChild={setChild} accept={childTypes} />
                     ))}
                 </ComponentObjectComponent>
             </Suspense>
