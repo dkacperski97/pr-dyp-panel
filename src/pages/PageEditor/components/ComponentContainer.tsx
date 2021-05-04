@@ -55,7 +55,7 @@ const ComponentContainer: React.FC<ComponentContainerProps> = ({ id, layout, set
             const newComponentLayout = new Layout(componentId);
             const newComponent = components.find((c) => c.id === componentId)
             if (newComponent) {
-                newComponent.options.forEach(option => {
+                newComponent.getOptions({}).forEach(option => {
                     if (option.default !== undefined) {
                         newComponentLayout.config[option.id] = option.default;
                     }
@@ -87,7 +87,7 @@ const ComponentContainer: React.FC<ComponentContainerProps> = ({ id, layout, set
             </Card>
         );
     }
-    const ComponentObjectComponent = React.lazy(componentObject.component);
+    const ComponentObjectComponent = React.lazy<React.FC<any>>(componentObject.getComponent);
     const childrenTypes = componentObject.getChildrenTypes?.(currentComponent.config) || [];
     return (
         <div className={classes.container}>
