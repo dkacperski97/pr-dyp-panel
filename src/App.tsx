@@ -3,10 +3,8 @@ import {
     BrowserRouter as Router,
     Route,
     Switch,
-    Redirect,
 } from "react-router-dom";
 import PageEditor from "./pages/PageEditor/PageEditor";
-import SiteInitializer from "./pages/SiteInitializer/SiteInitializer";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { DndProvider } from "react-dnd";
 import { ApolloProvider } from '@apollo/client/react';
@@ -23,13 +21,7 @@ const App: React.FC = () => {
             <DndProvider backend={HTML5Backend}>
                 <Router>
                     <Switch>
-                        <Route exact path="/">
-                            <Redirect to="/init" />
-                        </Route>
-                        <Route path="/init">
-                            <SiteInitializer />
-                        </Route>
-                        <Route path="/pages">
+                        <Route path="/">
                             <PageEditor />
                         </Route>
                     </Switch>

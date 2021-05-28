@@ -1,11 +1,11 @@
 import React, { Suspense } from "react";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
-import Layout from "../../../types/layout";
-import components from "components";
+import * as templates from "components";
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import Typography from "@material-ui/core/Typography";
 import DropTarget from "./DropTarget";
+import ComponentConfig from "../../../types/component";
 
 const useStyles = makeStyles((theme: Theme) =>
     createStyles({
@@ -19,61 +19,62 @@ export type SetChild = (componentId: string, index: number) => void;
 
 type ComponentContainerProps = {
     id: string;
-    layout: Layout[];
-    setLayout: (layout: (prev: Layout[]) => Layout[]) => void;
+    components: ComponentConfig[];
+    setComponents: (components: (prev: ComponentConfig[]) => ComponentConfig[]) => void;
+    setActiveChildComponent: (activeChildComponent: string) => void;
 };
-const ComponentContainer: React.FC<ComponentContainerProps> = ({ id, layout, setLayout }) => {
+const ComponentContainer: React.FC<ComponentContainerProps> = ({ id, components, setComponents, setActiveChildComponent }) => {
     const classes = useStyles();
-    const currentComponent = layout.find((c) => c.id === id);
-    if (!currentComponent) {
+    const component = components.find((c) => c.id === id);
+    if (!component) {
         return null;
     }
-    const componentObject = components.find((c) => c.id === currentComponent.componentId);
+    console.log(templates.components)
+    const templateObject = templates.components.find((c) => c.id === component.templateId);
+
+    /*
     const setChild: SetChild = (componentId: any, index: any) => {
-        const addChildId = (prev: string[], id: string) => {
+        const addChildId = (prev: (string|undefined)[], id: string) => {
             let prevCopy = prev.slice();
             prevCopy[index] = id;
             return prevCopy;
         };
-        const removeChildren = (newLayout: Layout[], childId: string) => {
-            let index = newLayout.findIndex((l) => l.id === childId);
-            newLayout[index].children.forEach((subchildId) =>
-                removeChildren(newLayout, subchildId)
-            );
-            newLayout.splice(index, 1);
+        const removeChildren = (newLayouts: Layout[], childId: string) => {
+            let index = newLayouts.findIndex((l) => l.id === childId);
+            newLayouts[index].children.forEach((subchildId) => {
+                if (subchildId) {
+                    removeChildren(newLayouts, subchildId)
+                }
+            });
+            newLayouts.splice(index, 1);
         };
-        const getNewLayout = (prev: Layout[]) => {
+        const getNewLayouts = (prev: Layout[]) => {
             const parent = prev.find((p) => p.id === id);
             if (!parent) {
                 console.log(prev, id);
                 throw new Error("Parent not found.");
             }
-            let newLayout = prev.slice();
-            if (parent.children[index] !== undefined) {
-                removeChildren(newLayout, parent.children[index]);
+            let newLayouts = prev.slice();
+            const child = parent.children[index];
+            if (child !== undefined) {
+                removeChildren(newLayouts, child);
             }
             const newComponentLayout = new Layout(componentId);
-            const newComponent = components.find((c) => c.id === componentId)
-            if (newComponent) {
-                newComponent.getOptions({}).forEach(option => {
-                    if (option.default !== undefined) {
-                        newComponentLayout.config[option.id] = option.default;
-                    }
-                })
-            }
-            const parentIndex = newLayout.findIndex((p) => p.id === id);
-            newLayout[parentIndex] = {
+            const parentIndex = newLayouts.findIndex((p) => p.id === id);
+            newLayouts[parentIndex] = {
                 ...parent,
                 children: addChildId(parent.children, newComponentLayout.id),
             };
-            newLayout.push(newComponentLayout);
-            console.log(prev, newLayout);
-            return newLayout;
+            newLayouts.push(newComponentLayout);
+            setActiveComponent(newComponentLayout.id);
+            console.log(prev, newLayouts);
+            return newLayouts;
         };
-        setLayout((prev) => getNewLayout(prev));
+        setLayouts((prev) => getNewLayouts(prev));
     };
+    */
 
-    if (!componentObject) {
+    if (!templateObject) {
         return (
             <Card>
                 <CardContent>
@@ -87,23 +88,24 @@ const ComponentContainer: React.FC<ComponentContainerProps> = ({ id, layout, set
             </Card>
         );
     }
-    const ComponentObjectComponent = React.lazy<React.FC<any>>(componentObject.getComponent);
-    const childrenTypes = componentObject.getChildrenTypes?.(currentComponent.config) || [];
+    const ComponentPreview = React.lazy(templateObject.getComponent);
     return (
         <div className={classes.container}>
             <Suspense fallback={<div>Loading...</div>}>
-                <ComponentObjectComponent config={currentComponent.config}>
-                    {childrenTypes.map((childTypes, i) => currentComponent.children[i] ? (
-                        <ComponentContainer
-                            key={currentComponent.children[i]}
-                            id={currentComponent.children[i]}
-                            layout={layout}
-                            setLayout={setLayout}
-                        />
-                    ) : (
-                        <DropTarget key={i} index={i} setChild={setChild} accept={childTypes} />
-                    ))}
-                </ComponentObjectComponent>
+                {(!templateObject.getOptions || component.options) && (
+                    <ComponentPreview>
+                        {component.children.map((child) => (
+                                <ComponentContainer
+                                    key={child}
+                                    id={child}
+                                    components={components}
+                                    setComponents={setComponents}
+                                    setActiveChildComponent={setActiveChildComponent}
+                                />
+                            )
+                        )}
+                    </ComponentPreview>
+                )}
             </Suspense>
         </div>
     );

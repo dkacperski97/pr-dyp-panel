@@ -4,7 +4,7 @@ import Paper from "@material-ui/core/Paper";
 import List from "@material-ui/core/List";
 import ListItem from "@material-ui/core/ListItem";
 import ListItemText from "@material-ui/core/ListItemText";
-import components from "components";
+import * as templates from "components";
 // TODO:
 // import type Component from "components/types/component";
 import { useDrag } from "react-dnd";
@@ -41,13 +41,11 @@ const Toolbar: React.FC = () => {
     const classes = useStyles();
 
     return (
-        <Paper className={classes.paper}>
-            <List>
-                {components.map((component: any) => (
-                    <ToolbarItem key={component.id} component={component} />
-                ))}
-            </List>
-        </Paper>
+        <List>
+            {templates.components.map((component: any) => (
+                <ToolbarItem key={component.id} component={component} />
+            ))}
+        </List>
     );
 };
 
