@@ -113,7 +113,7 @@ const VariablesEditor: React.FC<VariablesEditorProps> = ({ id, site, setSite }) 
                           ...c,
                           variables: [
                               ...c.variables,
-                              new Variable(`Variable ${c.variables.length + 1}`),
+                              new Variable(`variable${c.variables.length + 1}`),
                           ],
                       }
                     : c

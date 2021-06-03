@@ -227,7 +227,7 @@ const ComponentsEditorDrawer: React.FC<ComponentsEditorDrawerProps> = ({
     const onOptionsClick = () => {};
     const onNewPageClick = () => {
         setSite((prev) => {
-            const newPage = new ComponentConfig(`Page ${prev.components.length + 1}`, "page");
+            const newPage = new ComponentConfig(`Page${prev.components.length + 1}`, "page");
             return {
                 ...prev,
                 variables: prev.variables.map((v) =>
