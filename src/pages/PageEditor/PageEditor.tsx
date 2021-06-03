@@ -93,13 +93,15 @@ const ComponentListItemValue: React.FC<ComponentListItemValueProps> = ({
     const [, drop] = useDrop(() => ({
         accept: "Common", // TODO templateObject.type,
         drop: (item: any) => {
-            const newComponent = new ComponentConfig(item.id, item.id);
-            setComponents((prev) => [
-                ...prev.map((c) =>
-                    c.id === id ? { ...c, children: [...c.children, newComponent.id] } : c
-                ),
-                newComponent,
-            ]);
+            setComponents((prev) => {
+                const newComponent = new ComponentConfig(item.id + (prev.length+1), item.id);
+                return [
+                    ...prev.map((c) =>
+                        c.id === id ? { ...c, children: [...c.children, newComponent.id] } : c
+                    ),
+                    newComponent,
+                ]
+            });
         },
     }));
 
