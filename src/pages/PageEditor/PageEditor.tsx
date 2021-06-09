@@ -22,6 +22,7 @@ import TuneIcon from "@material-ui/icons/Tune";
 import { useDrop } from "react-dnd";
 import * as templates from "components";
 import VariablesEditor from "./components/VariablesEditor";
+import Variable from "../../types/variable";
 
 const GENERATE = gql`
     mutation {
@@ -92,15 +93,28 @@ const ComponentListItemValue: React.FC<ComponentListItemValueProps> = ({
     const [, drop] = useDrop(() => ({
         accept: "Common", // TODO templateObject.type,
         drop: (item: any) => {
-            setComponents((prev) => {
-                const newComponent = new ComponentConfig(item.id + (prev.length+1), item.id);
-                return [
-                    ...prev.map((c) =>
-                        c.id === id ? { ...c, children: [...c.children, newComponent.id] } : c
-                    ),
-                    newComponent,
-                ]
-            });
+            const c = templates.components.find((c) => c.id === item.id)
+            if (c) {
+                setComponents((prev) => {
+                    const variables = c.getOptions
+                        .filter(o => o.default !== undefined)
+                        .map(o => new Variable(o.id, o.default!.templateId, o.default!.templateParameters));
+                    const options: any = {};
+                    variables.forEach(v => options[v.name] = v.id);
+                    const newComponent = new ComponentConfig(
+                        item.id + (prev.length+1),
+                        item.id,
+                        variables,
+                        options
+                    );
+                    return [
+                        ...prev.map((c) =>
+                            c.id === id ? { ...c, children: [...c.children, newComponent.id] } : c
+                        ),
+                        newComponent,
+                    ]
+                });
+            }
         },
     }));
 
