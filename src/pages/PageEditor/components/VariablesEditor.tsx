@@ -13,6 +13,7 @@ import ListItem from "@material-ui/core/ListItem";
 import ListSubheader from "@material-ui/core/ListSubheader";
 import ListItemText from "@material-ui/core/ListItemText";
 import Variable from "../../../types/variable";
+import TextField from '@material-ui/core/TextField';
 
 const useStyles = makeStyles((theme: Theme) =>
     createStyles({
@@ -79,6 +80,23 @@ const VariablesEditor: React.FC<VariablesEditorProps> = ({ id, site, setSite }) 
         }
     }
 
+    const onVariableNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setSite((prev) => ({
+            ...prev,
+            components: prev.components.map((c) =>
+                c.id === id
+                    ? {
+                          ...c,
+                          variables: c.variables.map((v) =>
+                              v.id === activeVariable
+                                  ? { ...v, name: event.target.value }
+                                  : v
+                          ),
+                      }
+                    : c
+            ),
+        }));
+    }
     const onTemplateChange = (event: React.ChangeEvent<{ value: unknown }>) => {
         setSite((prev) => ({
             ...prev,
@@ -145,6 +163,15 @@ const VariablesEditor: React.FC<VariablesEditorProps> = ({ id, site, setSite }) 
                         <ListSubheader component="div">Variable configuration</ListSubheader>
                     }
                 >
+                    <ListItem>
+                        <TextField
+                            id="var_name"
+                            label="Name"
+                            type="text"
+                            value={variable.name}
+                            onChange={onVariableNameChange}
+                        />
+                    </ListItem>
                     <ListItem>
                         <FormControl className={classes.formControl}>
                             <InputLabel id="select_template_label">Template</InputLabel>
