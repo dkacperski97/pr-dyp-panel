@@ -1,4 +1,4 @@
-import { v4 as uuid4 } from 'uuid';
+// import { v4 as uuid4 } from 'uuid';
 import type {ISiteConfig} from 'components/types/site';
 import Variable from './variable';
 import ComponentConfig from './component';

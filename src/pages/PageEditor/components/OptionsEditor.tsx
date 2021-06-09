@@ -1,4 +1,4 @@
-import React, { Suspense } from "react";
+import React, { useState, useEffect } from "react";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import Paper from "@material-ui/core/Paper";
 import * as templates from "components";
@@ -35,15 +35,21 @@ type OptionsEditorProps = {
 };
 const OptionsEditor: React.FC<OptionsEditorProps> = ({ id, site, setSite }) => {
     const classes = useStyles();
-
-    const component = site.components.find((c) => c.id === id);
-    if (!component) {
-        return (
-            <Paper className={classes.paper}>ERROR</Paper> // TODO
-        );
-    }
-    const templateObject = templates.components.find((c) => c.id === component.templateId);
-    if (!templateObject) {
+    const [component, setComponent] = useState<ComponentConfig>();
+    const [templateObject, setTemplateObject] = useState<any>();
+    useEffect(() => {
+        const c = site.components.find((c) => c.id === id);
+        if (component !== c) {
+            setComponent(c);
+        }
+    }, [site.components, id, component])
+    useEffect(() => {
+        const t = component ? templates.components.find((c) => c.id === component.templateId) : undefined;
+        if (templateObject !== t) {
+            setTemplateObject(t);
+        }
+    }, [component, templateObject])
+    if (!component || !templateObject) {
         return (
             <Paper className={classes.paper}>ERROR</Paper> // TODO
         );
@@ -52,11 +58,16 @@ const OptionsEditor: React.FC<OptionsEditorProps> = ({ id, site, setSite }) => {
         return null;
     }
     const onChange = (event: React.ChangeEvent<{ value: unknown }>, optionId: string) => {
-        component.options[optionId] = event.target.value;
+        setSite((prev) => ({
+            ...prev,
+            components: prev.components.map((c) =>
+                c.id === id ? { ...c, options: { ...c.options, [optionId]: event.target.value } } : c
+            ),
+        }));
     };
     return (
         <ListItem className={classes.listItem}>
-            {templateObject.getOptions.map((o) => (
+            {templateObject.getOptions.map((o: any) => (
                     <FormControl className={classes.formControl} key={o.id}>
                         <InputLabel id={`select_${o.id}_label`}>{o.id}</InputLabel>
                         <Select

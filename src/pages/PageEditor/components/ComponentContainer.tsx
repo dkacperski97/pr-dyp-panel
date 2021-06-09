@@ -4,7 +4,7 @@ import * as templates from "components";
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import Typography from "@material-ui/core/Typography";
-import DropTarget from "./DropTarget";
+// import DropTarget from "./DropTarget";
 import ComponentConfig from "../../../types/component";
 
 const useStyles = makeStyles((theme: Theme) =>

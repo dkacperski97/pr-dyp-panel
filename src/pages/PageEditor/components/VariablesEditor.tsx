@@ -1,6 +1,6 @@
 import React, { Suspense, useEffect, useState } from "react";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
-import Paper from "@material-ui/core/Paper";
+// import Paper from "@material-ui/core/Paper";
 import * as templates from "components";
 import ComponentConfig from "../../../types/component";
 import FormControl from "@material-ui/core/FormControl";
@@ -63,20 +63,12 @@ const VariablesEditor: React.FC<VariablesEditorProps> = ({ id, site, setSite }) 
         }
     }, [component, variable, activeVariable])
     useEffect(() => {
-        if (variable) {
-            const newHookTemplateObject = templates.hooks.find((h) => h.id === variable.templateId);
-            if (hookTemplateObject !== newHookTemplateObject) {
-                setHookTemplateObject(newHookTemplateObject)
-            }
-        } else if (hookTemplateObject !== undefined) {
-            setHookTemplateObject(undefined);
+        const newHookTemplateObject = variable ? templates.hooks.find((h) => h.id === variable.templateId) : undefined;
+        if (hookTemplateObject !== newHookTemplateObject) {
+            setHookTemplateObject(newHookTemplateObject)
+            setHookForm(newHookTemplateObject ? React.lazy(newHookTemplateObject.getEditorForm) : undefined);
         }
     }, [variable, hookTemplateObject])
-    useEffect(() => {
-        if (hookTemplateObject) {
-            setHookForm(React.lazy(hookTemplateObject.getEditorForm));
-        }
-    }, [hookTemplateObject])
 
     if (!component) {
         return null;
@@ -96,7 +88,7 @@ const VariablesEditor: React.FC<VariablesEditorProps> = ({ id, site, setSite }) 
                           ...c,
                           variables: c.variables.map((v) =>
                               v.id === activeVariable
-                                  ? { ...v, templateId: event.target.value as string }
+                                  ? { ...v, templateId: event.target.value as string, templateParameters: undefined }
                                   : v
                           ),
                       }

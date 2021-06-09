@@ -19,8 +19,7 @@ import ListItemSecondaryAction from "@material-ui/core/ListItemSecondaryAction";
 import IconButton from "@material-ui/core/IconButton";
 import DeleteIcon from "@material-ui/icons/Delete";
 import TuneIcon from "@material-ui/icons/Tune";
-import Variable from "../../types/variable";
-import { useDrop, DropTargetHookSpec } from "react-dnd";
+import { useDrop } from "react-dnd";
 import * as templates from "components";
 import VariablesEditor from "./components/VariablesEditor";
 
