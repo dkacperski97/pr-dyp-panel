@@ -333,6 +333,8 @@ const ComponentsEditorDrawer: React.FC<ComponentsEditorDrawerProps> = ({
     );
 };
 
+const Page1 = React.lazy(() => import('output/Page1'))
+
 const PagesEditor: React.FC = () => {
     const classes = useStyles();
     const [site, setSite] = useState<SiteConfig>(new SiteConfig());
@@ -374,14 +376,17 @@ const PagesEditor: React.FC = () => {
                 )}
             </ComponentsEditorDrawer>
             <main className={classes.content}>
-                {activeComponent && (
+                    <React.Suspense fallback="Loading Button">
+                        <Page1 />
+                    </React.Suspense>
+                {/* {activeComponent && (
                     <ComponentContainer
                         id={activeComponent}
                         components={site.components}
                         setComponents={setComponents}
                         setActiveChildComponent={setActiveChildComponent}
                     />
-                )}
+                )} */}
             </main>
             <Drawer
                 className={classes.drawer}

@@ -1,61 +1,42 @@
 const path = require('path')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
-const ModuleFederationPlugin = require("webpack/lib/container/ModuleFederationPlugin");
+const { ModuleFederationPlugin } = require('webpack').container;
+const deps = require('./package.json').dependencies;
+
+const commonOptions = require('./webpack.common');
 
 const options = {
-    mode: process.env.NODE_ENV || 'development',
-    entry: path.resolve(__dirname, './src/index.tsx'),
-    devtool: process.env.NODE_ENV !== 'production' ? 'eval' : undefined,
-    resolve: {
-      extensions: ['.tsx', '.ts', '.jsx', '.js'],
-    },
-    module: {
-      rules: [
-        {
-          test: /\.(ts|js)x?$/,
-          exclude: /node_modules/,
-          use: [
-            {
-              loader: 'babel-loader',
-            },
-          ],
+  ...commonOptions,
+  plugins: [
+    ...commonOptions.plugins,
+    new ModuleFederationPlugin({
+      name: "panel",
+      remotes: {
+        "output": "output@http://localhost:3001/remoteEntry.js"
+      },
+      shared: {
+        "react": {
+          singleton: true,
+          // eager: true,
+          requiredVersion: deps.react,
+        }, 
+        "react-dom": {
+          singleton: true,
+          // eager: true,
+          requiredVersion: deps["react-dom"],
         },
-        {
-          test: /\.css$/,
-          use: ['style-loader', 'css-loader'],
+        "@material-ui/core": {
+          singleton: true,
         },
-        {
-          test: /\.(?:ico|gif|png|jpg|jpeg)$/i,
-          type: 'asset/resource',
+        "@material-ui/icons": {
+          singleton: true,
+        }, 
+        "react-router-dom": {
+          singleton: true,
         },
-        {
-          test: /\.(woff(2)?|eot|ttf|otf|svg|)$/,
-          type: 'asset/inline',
-        },
-      ],
-    },
-    output: {
-      path: path.resolve(__dirname, './dist'),
-      filename: 'bundle.js',
-    },
-    plugins: [
-      new ModuleFederationPlugin({
-        name: "output",
-        remotes: {
-          app_two: "app_two_remote",
-          app_three: "app_three_remote"
-        },
-        exposes: {
-          './AppContainer':'./src/App'
-        },
-        shared: ["react", "react-dom","react-router-dom","@material-ui/core","@material-ui/icons"]
-      }),
-      new HtmlWebpackPlugin({
-        template: path.resolve(__dirname, './public/index.html'),
-        chunks: ["main"]
-      }),
-    ],
-    stats: 'errors-only',
+      }
+    }),
+  ]
 }
 
 module.exports = options;
