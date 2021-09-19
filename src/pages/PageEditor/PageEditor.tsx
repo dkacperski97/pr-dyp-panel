@@ -333,7 +333,10 @@ const ComponentsEditorDrawer: React.FC<ComponentsEditorDrawerProps> = ({
     );
 };
 
-const Page1 = React.lazy(() => import('output/Page1'))
+// @ts-ignore
+import * as com from "output/components";
+const sss = "Page" + "1"
+const Page1: React.LazyExoticComponent<React.ComponentType> = com[sss];
 
 const PagesEditor: React.FC = () => {
     const classes = useStyles();
