@@ -48,6 +48,7 @@ const options = {
     },
     output: {
       publicPath: "auto",
+      uniqueName: 'panel',
       // path: path.resolve(__dirname, './dist'),
       // filename: '[name].js',
       // chunkFilename: '[name].chunk.js'

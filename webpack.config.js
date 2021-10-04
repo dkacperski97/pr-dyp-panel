@@ -32,6 +32,7 @@ const options = {
           requiredVersion: deps["react-dom"],
         },
         "@material-ui/core": {
+          // eager: true,
           singleton: true,
         },
         "@material-ui/icons": {
