@@ -1,41 +1,32 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import Drawer from "@material-ui/core/Drawer";
 import List from "@material-ui/core/List";
-import ListItem from "@material-ui/core/ListItem";
-import ListItemText from "@material-ui/core/ListItemText";
-import ListItemIcon from "@material-ui/core/ListItemIcon";
 import Toolbar from "./components/Toolbar";
-import ComponentConfig from "../../types/component";
 import SiteConfig from "../../types/site";
-import ComponentContainer from "./components/ComponentContainer";
-import { gql, useMutation, useQuery } from "@apollo/client";
-import Typography from "@material-ui/core/Typography";
-import BuildIcon from "@material-ui/icons/Build";
 import ListSubheader from "@material-ui/core/ListSubheader";
-import AddIcon from "@material-ui/icons/Add";
 import OptionsEditor from "./components/OptionsEditor";
-import ListItemSecondaryAction from "@material-ui/core/ListItemSecondaryAction";
-import IconButton from "@material-ui/core/IconButton";
-import DeleteIcon from "@material-ui/icons/Delete";
-import TuneIcon from "@material-ui/icons/Tune";
-import { useDrop } from "react-dnd";
-import * as templates from "components";
 import VariablesEditor from "./components/VariablesEditor";
-import Variable from "../../types/variable";
+import Viewer from "./components/Viewer";
+import Header from "./components/Header";
+import Pages from "./components/Pages";
+import { gql, useQuery, useMutation } from "@apollo/client";
+import Editor from "../../types/editor";
+import { useScreenshot } from "use-react-screenshot";
+import Layout from "./components/Layout";
 
-const GENERATE = gql`
-    mutation {
-        generate
-    }
-`;
 const UPDATE_SITE = gql`
     query ($value: String) {
         site(value: $value)
     }
 `;
+const GENERATE = gql`
+    mutation {
+        generate
+    }
+`;
 
-const drawerWidth = 310;
+const drawerWidth = 408;
 
 const useStyles = makeStyles((theme: Theme) =>
     createStyles({
@@ -63,6 +54,7 @@ const useStyles = makeStyles((theme: Theme) =>
         componentsList: {
             maxHeight: "400px",
             overflowY: "auto",
+            scrollbarWidth: "thin",
         },
         listSubheader: {
             backgroundColor: theme.palette.background.paper,
@@ -70,326 +62,56 @@ const useStyles = makeStyles((theme: Theme) =>
     })
 );
 
-type ComponentListItemValueProps = {
-    id: string;
-    childComponent: ComponentConfig;
-    depth: number;
-    activeChildComponent: string | undefined;
-    templateObject: any;
-    onClick: () => void;
-    onDeleteClick: () => void;
-    setComponents: (components: (prev: ComponentConfig[]) => ComponentConfig[]) => void;
-};
-const ComponentListItemValue: React.FC<ComponentListItemValueProps> = ({
-    id,
-    depth,
-    activeChildComponent,
-    childComponent,
-    templateObject,
-    onClick,
-    onDeleteClick,
-    setComponents,
-}) => {
-    const [, drop] = useDrop(() => ({
-        accept: "Common", // TODO templateObject.type,
-        drop: (item: any) => {
-            const c = templates.components.find((c) => c.id === item.id)
-            if (c) {
-                setComponents((prev) => {
-                    const variables = c.getOptions
-                        .filter(o => o.default !== undefined)
-                        .map(o => new Variable(o.id, o.default!.templateId, o.default!.templateParameters));
-                    const options: any = {};
-                    variables.forEach(v => options[v.name] = v.id);
-                    const newComponent = new ComponentConfig(
-                        item.id + (prev.length+1),
-                        item.id,
-                        variables,
-                        options
-                    );
-                    return [
-                        ...prev.map((c) =>
-                            c.id === id ? { ...c, children: [...c.children, newComponent.id] } : c
-                        ),
-                        newComponent,
-                    ]
-                });
-            }
-        },
-    }));
-
-    return (
-        <ListItem ref={drop} button onClick={onClick} selected={activeChildComponent === id}>
-            <ListItemText primary={"_".repeat(depth) + childComponent.name} />
-            {depth !== 0 && (
-                <ListItemSecondaryAction>
-                    <IconButton edge="end" onClick={onDeleteClick}>
-                        <DeleteIcon />
-                    </IconButton>
-                </ListItemSecondaryAction>
-            )}
-        </ListItem>
-    );
-};
-
-type ComponentListItemProps = {
-    id: string;
-    components: ComponentConfig[];
-    setComponents: (components: (prev: ComponentConfig[]) => ComponentConfig[]) => void;
-    depth: number;
-    activeChildComponent: string | undefined;
-    setActiveChildComponent: (activeComponent: string | undefined) => void;
-};
-const ComponentListItem: React.FC<ComponentListItemProps> = ({
-    id,
-    components,
-    setComponents,
-    depth,
-    activeChildComponent,
-    setActiveChildComponent,
-}) => {
-    const childComponent = components.find((c) => c.id === id);
-    if (!childComponent) {
-        return (
-            <ListItem>
-                <ListItemText primary="Error" />
-            </ListItem>
-        );
-    }
-    const templateObject = templates.components.find((c) => c.id === childComponent.templateId);
-    if (!templateObject) {
-        return (
-            <ListItem>
-                <ListItemText primary="ERROR" />
-            </ListItem>
-        );
-    }
-
-    const onClick = () => {
-        setActiveChildComponent(id);
-    };
-
-    const onDeleteClick = () => {
-        const removeChildren = (newComponents: ComponentConfig[], childId: string) => {
-            const index = newComponents.findIndex((c) => c.id === childId);
-            newComponents[index].children.forEach((subchildId) =>
-                removeChildren(newComponents, subchildId)
-            );
-            newComponents.splice(index, 1);
-        };
-        const getNewComponents = (prev: ComponentConfig[]) => {
-            const newComponents = prev.slice();
-            let parent = newComponents.find((c) => c.children.includes(id));
-            if (parent) {
-                parent.children = parent.children.filter((child) => child !== id);
-            }
-            removeChildren(newComponents, id);
-            return newComponents;
-        };
-        setComponents((prev) => getNewComponents(prev));
-        setActiveChildComponent(undefined);
-    };
-
-    return (
-        <>
-            <ComponentListItemValue
-                id={id}
-                depth={depth}
-                activeChildComponent={activeChildComponent}
-                childComponent={childComponent}
-                templateObject={templateObject}
-                onClick={onClick}
-                onDeleteClick={onDeleteClick}
-                setComponents={setComponents}
-            />
-            {childComponent.children.map(
-                (child) =>
-                    child && (
-                        <ComponentListItem
-                            key={child}
-                            id={child}
-                            components={components}
-                            depth={depth + 1}
-                            activeChildComponent={activeChildComponent}
-                            setActiveChildComponent={setActiveChildComponent}
-                            setComponents={setComponents}
-                        />
-                    )
-            )}
-        </>
-    );
-};
-
-type ComponentsEditorDrawerProps = {
-    site: SiteConfig;
-    setSite: React.Dispatch<React.SetStateAction<SiteConfig>>;
-    activeComponent: string | undefined;
-    setActiveComponent: (id: string) => void;
-};
-const ComponentsEditorDrawer: React.FC<ComponentsEditorDrawerProps> = ({
-    site,
-    setSite,
-    activeComponent,
-    setActiveComponent,
-    children,
-}) => {
-    const classes = useStyles();
-    const [generate, { loading }] = useMutation(GENERATE);
-
-    const onGenerateClick = () => {
-        generate();
-    };
-    const onOptionsClick = () => {};
-    const onNewPageClick = () => {
-        setSite((prev) => {
-            const newPage = new ComponentConfig(`Page${prev.components.length + 1}`, "page");
-            return {
-                ...prev,
-                variables: prev.variables.map((v) =>
-                    v.name === "routes"
-                        ? {
-                              ...v,
-                              templateParameters: {
-                                  routes: [
-                                      ...(v.templateParameters?.routes || []),
-                                      {
-                                          url:
-                                              prev.components.length === 0
-                                                  ? ""
-                                                  : `${prev.components.length}`,
-                                          component: newPage.id,
-                                      },
-                                  ],
-                              },
-                          }
-                        : v
-                ),
-                components: [...prev.components, newPage],
-            };
-        });
-    };
-    const onPageClick = (id: string) => {
-        setActiveComponent(id);
-    };
-
-    return (
-        <Drawer
-            className={classes.drawer}
-            variant="permanent"
-            classes={{
-                paper: classes.drawerPaper,
-            }}
-            anchor="left"
-        >
-            <List>
-                <ListItem>
-                    <Typography variant="h4" component="h1">
-                        Editor
-                    </Typography>
-                </ListItem>
-            </List>
-            <List subheader={<ListSubheader component="div">Actions</ListSubheader>}>
-                <ListItem button disabled={loading} onClick={onGenerateClick}>
-                    <ListItemIcon>
-                        <BuildIcon />
-                    </ListItemIcon>
-                    <ListItemText primary={loading ? "Generating..." : "Generate"} />
-                </ListItem>
-                <ListItem button onClick={onOptionsClick}>
-                    <ListItemIcon>
-                        <TuneIcon />
-                    </ListItemIcon>
-                    <ListItemText primary="Options" />
-                </ListItem>
-                <ListItem button onClick={onNewPageClick}>
-                    <ListItemIcon>
-                        <AddIcon />
-                    </ListItemIcon>
-                    <ListItemText primary="New page" />
-                </ListItem>
-            </List>
-            <List subheader={<ListSubheader component="div">Pages</ListSubheader>}>
-                {site.components.length === 0 ? (
-                    <ListItem>
-                        <ListItemText primary="Empty page list" />
-                    </ListItem>
-                ) : (
-                    site.components
-                        .filter((c) => c.templateId === "page")
-                        .map((c) => (
-                            <ListItem
-                                key={c.id}
-                                button
-                                onClick={() => onPageClick(c.id)}
-                                selected={activeComponent === c.id}
-                            >
-                                <ListItemText primary={c.name} />
-                            </ListItem>
-                        ))
-                )}
-            </List>
-            {children}
-        </Drawer>
-    );
-};
-
-// @ts-ignore
-import * as com from "output/components";
-const sss = "Page" + "1"
-const Page1: React.LazyExoticComponent<React.ComponentType> = com[sss];
 
 const PagesEditor: React.FC = () => {
     const classes = useStyles();
+    const ref = useRef<HTMLElement>(null);
+    const [image, takeScreenshot] = useScreenshot();
     const [site, setSite] = useState<SiteConfig>(new SiteConfig());
-    const [activeComponent, setActiveComponent] = useState<string>();
-    const [activeChildComponent, setActiveChildComponent] = useState<string>();
-    const { loading, error, data, refetch } = useQuery(UPDATE_SITE, {
+    const [editor, setEditor] = useState<Editor>(new Editor());
+    const [generate, { loading }] = useMutation(GENERATE);
+    const { error, data, refetch } = useQuery(UPDATE_SITE, {
         variables: { value: JSON.stringify(site) },
     });
     useEffect(() => {
+        // const pageCount = site.components.filter((c) => c.templateId === "page").length;
+        if (editor.activePage !== undefined) {
+            generate().then(() => {
+                if (ref.current) {
+                    console.log("takeScreenshot");
+                    takeScreenshot(ref.current).then((image) => {
+                        console.log("setEditor");
+                        setEditor((prev) => ({
+                            ...prev,
+                            screenshots: { ...prev.screenshots, [editor.activePage!]: image },
+                        }));
+                    });
+                }
+            });
+        }
         refetch();
     }, [site]);
-    const setComponents = (components: (prev: ComponentConfig[]) => ComponentConfig[]) =>
-        setSite((prev) => ({ ...prev, components: components(prev.components) }));
 
     const setSelections = (id: string) => {
-        setActiveComponent(id);
-        setActiveChildComponent(undefined);
+        setEditor((prev) => ({ ...prev, activePage: id, activeComponent: undefined }));
     };
 
     return (
         <div className={classes.root}>
-            <ComponentsEditorDrawer
-                site={site}
-                setSite={setSite}
-                activeComponent={activeComponent}
-                setActiveComponent={setSelections}
+            <Drawer
+                className={classes.drawer}
+                variant="permanent"
+                classes={{
+                    paper: classes.drawerPaper,
+                }}
+                anchor="left"
             >
-                {activeComponent && (
-                    <List subheader={<ListSubheader component="div">Page layout</ListSubheader>}>
-                        <ComponentListItem
-                            id={activeComponent}
-                            depth={0}
-                            components={site.components}
-                            setComponents={setComponents}
-                            activeChildComponent={activeChildComponent}
-                            setActiveChildComponent={setActiveChildComponent}
-                        />
-                    </List>
-                )}
-            </ComponentsEditorDrawer>
-            <main className={classes.content}>
-                    <React.Suspense fallback="Loading Button">
-                        <Page1 />
-                    </React.Suspense>
-                {/* {activeComponent && (
-                    <ComponentContainer
-                        id={activeComponent}
-                        components={site.components}
-                        setComponents={setComponents}
-                        setActiveChildComponent={setActiveChildComponent}
-                    />
-                )} */}
+                <Header />
+                <Pages site={site} setSite={setSite} editor={editor} setEditor={setEditor} />
+                <Layout site={site} setSite={setSite} editor={editor} setEditor={setEditor} />
+            </Drawer>
+            <main className={classes.content} ref={ref}>
+                {editor.activePage && (<Viewer site={site} editor={editor} setEditor={setEditor} />)}
             </main>
             <Drawer
                 className={classes.drawer}
@@ -409,12 +131,16 @@ const PagesEditor: React.FC = () => {
                 >
                     <Toolbar />
                 </List>
-                {activeChildComponent && (
+                {editor.activeComponent && (
                     <>
-                        <VariablesEditor id={activeChildComponent} site={site} setSite={setSite} />
+                        <VariablesEditor
+                            id={editor.activeComponent}
+                            site={site}
+                            setSite={setSite}
+                        />
                         <List subheader={<ListSubheader component="div">Options</ListSubheader>}>
                             <OptionsEditor
-                                id={activeChildComponent}
+                                id={editor.activeComponent}
                                 site={site}
                                 setSite={setSite}
                             />
