@@ -47,7 +47,7 @@ const Page: React.FC<PageProps> = (props) => {
     const { editor, setEditor, page } = props;
 
     const onPageClick = (id: string) => {
-        setEditor((prev) => ({ ...prev, activePage: id }));
+        setEditor((prev) => ({ ...prev, activePage: id, showLayout: true }));
     };
 
     return (

@@ -13,7 +13,10 @@ import ListItem from "@material-ui/core/ListItem";
 import ListSubheader from "@material-ui/core/ListSubheader";
 import ListItemText from "@material-ui/core/ListItemText";
 import Variable from "../../../types/variable";
-import TextField from '@material-ui/core/TextField';
+import TextField from "@material-ui/core/TextField";
+import IconButton from "@material-ui/core/IconButton";
+import AddIcon from "@material-ui/icons/Add";
+import VariableConfiguration from "./VariableConfiguration";
 
 const useStyles = makeStyles((theme: Theme) =>
     createStyles({
@@ -30,95 +33,42 @@ const useStyles = makeStyles((theme: Theme) =>
         listItem: {
             flexWrap: "wrap",
         },
+        subheader: {
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            backgroundColor: theme.palette.background.paper,
+        },
     })
 );
 
 type VariablesEditorProps = {
-    id: string;
+    component: ComponentConfig;
+    templateObject: any;
     site: SiteConfig;
     setSite: React.Dispatch<React.SetStateAction<SiteConfig>>;
 };
-const VariablesEditor: React.FC<VariablesEditorProps> = ({ id, site, setSite }) => {
+const VariablesEditor: React.FC<VariablesEditorProps> = ({ component, templateObject, site, setSite }) => {
     const [activeVariable, setActiveVariable] = useState<string>();
-    const [component, setComponent] = useState<ComponentConfig>();
     const [variable, setVariable] = useState<Variable>();
-    const [hookTemplateObject, setHookTemplateObject] = useState<any>();
-    const [HookForm, setHookForm] = useState<any>();
     const classes = useStyles();
 
     useEffect(() => {
-        const c = site.components.find((c) => c.id === id);
-        if (component !== c) {
-            setComponent(c);
-            // setActiveVariable(undefined);
-        }
-    }, [site, component, id])
-    useEffect(() => {
         if (component) {
-            const v = component.variables.find((v) => v.id === activeVariable)
+            const v = component.variables.find((v) => v.id === activeVariable);
             if (variable !== v) {
                 setVariable(v);
             }
         } else if (variable !== undefined) {
-            setVariable(undefined)
+            setVariable(undefined);
         }
-    }, [component, variable, activeVariable])
-    useEffect(() => {
-        const newHookTemplateObject = variable ? templates.hooks.find((h) => h.id === variable.templateId) : undefined;
-        if (hookTemplateObject !== newHookTemplateObject) {
-            setHookTemplateObject(newHookTemplateObject)
-            setHookForm(newHookTemplateObject ? React.lazy(newHookTemplateObject.getEditorForm) : undefined);
-        }
-    }, [variable, hookTemplateObject])
+    }, [component, variable, activeVariable]);
 
-    if (!component) {
-        return null;
-    }
-    if (variable && variable.templateId) {
-        if (!hookTemplateObject) {
-            return null;
-        }
-    }
-
-    const onVariableNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setSite((prev) => ({
-            ...prev,
-            components: prev.components.map((c) =>
-                c.id === id
-                    ? {
-                          ...c,
-                          variables: c.variables.map((v) =>
-                              v.id === activeVariable
-                                  ? { ...v, name: event.target.value }
-                                  : v
-                          ),
-                      }
-                    : c
-            ),
-        }));
-    }
-    const onTemplateChange = (event: React.ChangeEvent<{ value: unknown }>) => {
-        setSite((prev) => ({
-            ...prev,
-            components: prev.components.map((c) =>
-                c.id === id
-                    ? {
-                          ...c,
-                          variables: c.variables.map((v) =>
-                              v.id === activeVariable
-                                  ? { ...v, templateId: event.target.value as string, templateParameters: undefined }
-                                  : v
-                          ),
-                      }
-                    : c
-            ),
-        }));
-    };
     const onAddClick = () => {
         setSite((prev) => ({
             ...prev,
             components: prev.components.map((c) =>
-                c.id === id
+                c.id === component.id
                     ? {
                           ...c,
                           variables: [
@@ -133,19 +83,44 @@ const VariablesEditor: React.FC<VariablesEditorProps> = ({ id, site, setSite }) 
     const onVarClick = (id: string) => {
         setActiveVariable(id);
     };
+    const onVariableNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setSite((prev) => ({
+            ...prev,
+            components: prev.components.map((c) =>
+                c.id === component.id
+                    ? {
+                          ...c,
+                          variables: c.variables.map((v) =>
+                              v.id === variable!.id ? { ...v, name: event.target.value } : v
+                          ),
+                      }
+                    : c
+            ),
+        }));
+    };
 
     return (
         <>
-            <List subheader={<ListSubheader component="div">Variables</ListSubheader>}>
-                <ListItem button onClick={() => onAddClick()}>
-                    <ListItemText primary="Add" />
-                </ListItem>
-                {component.variables.length === 0 ? (
+            <List
+                subheader={
+                    <ListSubheader className={classes.subheader} component="div">
+                        Additional variables
+                        <IconButton size="small" edge="end" onClick={onAddClick}>
+                            <AddIcon />
+                        </IconButton>
+                    </ListSubheader>
+                }
+            >
+                {component.variables
+                    .filter((v) => !templateObject.getOptions.some((o: any) => o.id === v.name))
+                    .length === 0 ? (
                     <ListItem>
-                        <ListItemText primary="Empty variables list" />
+                        <ListItemText primary="Empty list" />
                     </ListItem>
                 ) : (
-                    component.variables.map((v) => (
+                    component.variables
+                        .filter((v) => !templateObject.getOptions.some((o: any) => o.id === v.name))
+                        .map((v) => (
                         <ListItem
                             key={v.id}
                             button
@@ -158,11 +133,7 @@ const VariablesEditor: React.FC<VariablesEditorProps> = ({ id, site, setSite }) 
                 )}
             </List>
             {variable && (
-                <List
-                    subheader={
-                        <ListSubheader component="div">Variable configuration</ListSubheader>
-                    }
-                >
+                <List>
                     <ListItem>
                         <TextField
                             id="var_name"
@@ -172,30 +143,12 @@ const VariablesEditor: React.FC<VariablesEditorProps> = ({ id, site, setSite }) 
                             onChange={onVariableNameChange}
                         />
                     </ListItem>
-                    <ListItem>
-                        <FormControl className={classes.formControl}>
-                            <InputLabel id="select_template_label">Template</InputLabel>
-                            <Select
-                                labelId="select_template_label"
-                                id="select_template"
-                                value={variable.templateId || ""}
-                                onChange={onTemplateChange}
-                            >
-                                {templates.hooks.map((h) => (
-                                    <MenuItem value={h.id} key={h.id}>
-                                        {h.id}
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
-                    </ListItem>
-                    {HookForm && (
-                        <ListItem className={classes.listItem}>
-                            <Suspense fallback={<div>Loading...</div>}>
-                                <HookForm site={site} setSite={setSite} componentId={id} variableId={variable.id} />
-                            </Suspense>
-                        </ListItem>
-                    )}
+                    <VariableConfiguration 
+                        component={component}
+                        variable={variable}
+                        site={site}
+                        setSite={setSite}
+                    />
                 </List>
             )}
         </>

@@ -16,9 +16,8 @@ const useStyles = makeStyles((theme: Theme) =>
     createStyles({
         list: {
             marginTop: theme.spacing(4),
-            height: "400px",
-            maxHeight: "400px",
             overflowY: "auto",
+            scrollbarWidth: "thin",
         },
         subheader: {
             display: "flex",
@@ -55,7 +54,7 @@ const Pages: React.FC<PagesProps> = ({ site, setSite, editor, setEditor }) => {
                 pageIndex++;
             }
             const newPage = new ComponentConfig(`Page${pageIndex}`, "page");
-            setEditor((prev) => ({ ...prev, activePage: newPage.id }));
+            setEditor((prev) => ({ ...prev, activePage: newPage.id, showLayout: true }));
             return {
                 ...prev,
                 variables: prev.variables.map((v) =>

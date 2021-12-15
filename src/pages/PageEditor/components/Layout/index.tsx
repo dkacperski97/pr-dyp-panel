@@ -6,6 +6,17 @@ import ComponentListItem from './ComponentListItem';
 import ComponentConfig from "../../../../types/component";
 import SiteConfig from "../../../../types/site";
 import Editor from "../../../../types/editor";
+import TreeView from '@material-ui/lab/TreeView';
+import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
+
+const useStyles = makeStyles((theme: Theme) =>
+    createStyles({
+        layout: {
+            flexGrow: 1,
+            backgroundColor: theme.palette.background.paper,
+        },
+    })
+);
 
 type LayoutProps = {
     site: SiteConfig;
@@ -14,6 +25,7 @@ type LayoutProps = {
     setEditor: React.Dispatch<React.SetStateAction<Editor>>;
 };
 const Layout: React.FC<LayoutProps> = ({ site, setSite, editor, setEditor }) => {
+    const classes = useStyles();
     const setComponents = (components: (prev: ComponentConfig[]) => ComponentConfig[]) =>
         setSite((prev) => ({ ...prev, components: components(prev.components) }));
 
@@ -22,15 +34,19 @@ const Layout: React.FC<LayoutProps> = ({ site, setSite, editor, setEditor }) => 
             <Divider />
             <List
                 subheader={<ListSubheader component="div">Page layout</ListSubheader>}
+                className={classes.layout}
             >
-                <ComponentListItem
-                    id={editor.activePage}
-                    depth={0}
-                    components={site.components}
-                    setComponents={setComponents}
-                    editor={editor}
-                    setEditor={setEditor}
-                />
+                <TreeView selected={editor.activeComponent}
+                        expanded={site.components.map(c => c.id)}>
+                    <ComponentListItem
+                        id={editor.activePage}
+                        depth={0}
+                        components={site.components}
+                        setComponents={setComponents}
+                        editor={editor}
+                        setEditor={setEditor}
+                    />
+                </TreeView>
             </List>
         </>
     ) : null;

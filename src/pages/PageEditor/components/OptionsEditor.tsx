@@ -1,7 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
-import Paper from "@material-ui/core/Paper";
-import * as templates from "components";
 import ComponentConfig from "../../../types/component";
 import FormControl from "@material-ui/core/FormControl";
 import Select from "@material-ui/core/Select";
@@ -9,51 +7,40 @@ import InputLabel from "@material-ui/core/InputLabel";
 import SiteConfig from "../../../types/site";
 import MenuItem from "@material-ui/core/MenuItem";
 import ListItem from "@material-ui/core/ListItem";
+import Typography from "@material-ui/core/Typography";
+import Variable from "../../../types/variable";
+import VariableConfiguration from "./VariableConfiguration";
+import Avatar from '@material-ui/core/Avatar';
+import CodeIcon from '@material-ui/icons/Code';
 
 const useStyles = makeStyles((theme: Theme) =>
     createStyles({
-        paper: {
-            marginTop: theme.spacing(2),
-            marginRight: theme.spacing(2),
-        },
-        formControl: {
-            width: '100%',
-            display: 'flex',
-            flex: '1 1 auto',
-            flexWrap: 'wrap'
-        },
         listItem: {
             flexWrap: 'wrap'
+        },
+        optionHeader: {
+            display: 'flex',
+            justifyContent: "space-between",
+            width: "100%",
+            alignItems: 'center'
+
+        },
+        optionTitle: {
+            flexGrow: 1,
+            paddingLeft: theme.spacing(1),
         }
     })
 );
 
 type OptionsEditorProps = {
-    id: string;
+    component: ComponentConfig;
+    templateObject: any;
     site: SiteConfig;
     setSite: React.Dispatch<React.SetStateAction<SiteConfig>>;
 };
-const OptionsEditor: React.FC<OptionsEditorProps> = ({ id, site, setSite }) => {
+const OptionsEditor: React.FC<OptionsEditorProps> = ({ component, templateObject, site, setSite }) => {
     const classes = useStyles();
-    const [component, setComponent] = useState<ComponentConfig>();
-    const [templateObject, setTemplateObject] = useState<any>();
-    useEffect(() => {
-        const c = site.components.find((c) => c.id === id);
-        if (component !== c) {
-            setComponent(c);
-        }
-    }, [site.components, id, component])
-    useEffect(() => {
-        const t = component ? templates.components.find((c) => c.id === component.templateId) : undefined;
-        if (templateObject !== t) {
-            setTemplateObject(t);
-        }
-    }, [component, templateObject])
-    if (!component || !templateObject) {
-        return (
-            <Paper className={classes.paper}>ERROR</Paper> // TODO
-        );
-    }
+
     if (templateObject.getOptions === undefined || templateObject.getOptions.length === 0) {
         return null;
     }
@@ -61,31 +48,45 @@ const OptionsEditor: React.FC<OptionsEditorProps> = ({ id, site, setSite }) => {
         setSite((prev) => ({
             ...prev,
             components: prev.components.map((c) =>
-                c.id === id ? { ...c, options: { ...c.options, [optionId]: event.target.value } } : c
+                c.id === component.id ? { ...c, options: { ...c.options, [optionId]: event.target.value } } : c
             ),
         }));
     };
-    return (
-        <ListItem className={classes.listItem}>
-            {templateObject.getOptions.map((o: any) => (
-                    <FormControl className={classes.formControl} key={o.id}>
-                        <InputLabel id={`select_${o.id}_label`}>{o.id}</InputLabel>
-                        <Select
-                            labelId={`select_${o.id}_label`}
-                            id={`select_${o.id}`}
-                            value={component.options[o.id]}
-                            onChange={(e) => onChange(e, o.id)}
-                        >
-                            {component.variables.map((v) => (
-                                <MenuItem value={v.id} key={v.id}>
-                                    {v.name}
-                                </MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
-            ))}
+    return templateObject.getOptions
+        .map((o: any) => ({ o, v: component.variables.find((v) => v.name === o.id)!}))
+        .map(({o, v}: { o: any; v: Variable }) => (
+        <ListItem key={o.id} className={classes.listItem}>
+            <div className={classes.optionHeader}>
+                <Avatar>
+                    <CodeIcon />
+                </Avatar>
+                <Typography className={classes.optionTitle}>
+                    {o.id}
+                </Typography>
+                {/* <FormControl size="small">
+                    <InputLabel id={`select_value_label`}>Based on</InputLabel>
+                    <Select
+                        labelId={`select_value_label`}
+                        id={`select_value`}
+                        value={component.options[o.id]}
+                        onChange={(e) => onChange(e, o.id)}
+                    >
+                        {component.variables.map((v2) => (
+                            <MenuItem value={v2.id} key={v2.id}>
+                                {variable.name === v2.name ? 'New value' : v2.name}
+                            </MenuItem>
+                        ))}
+                    </Select>
+                </FormControl> */}
+            </div>
+            <VariableConfiguration
+                component={component}
+                variable={v}
+                site={site}
+                setSite={setSite}
+            />
         </ListItem>
-    );
+    ));
 };
 
 export default OptionsEditor;

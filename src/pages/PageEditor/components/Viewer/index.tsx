@@ -5,6 +5,9 @@ import SiteConfig from "../../../../types/site";
 // @ts-ignore
 import PageViewer from "output/components";
 
+// @ts-ignore
+import * as SiteContext from "output/SiteContext";
+
 type ViewerProps = {
     site: SiteConfig;
     editor: Editor;
@@ -21,9 +24,11 @@ const Viewer: React.FC<ViewerProps> = ({ site, editor, setEditor }) => {
 
     return (name && PageViewer) ? (
         <>
-            <React.Suspense fallback="Loading Button">
-                <PageViewer name={name} />
-            </React.Suspense>
+            <SiteContext.SiteProvider>
+                <React.Suspense fallback="Loading Button">
+                    <PageViewer name={name} />
+                </React.Suspense>
+            </SiteContext.SiteProvider>
             {/* {activeComponent && (
                 <ComponentContainer
                     id={activeComponent}

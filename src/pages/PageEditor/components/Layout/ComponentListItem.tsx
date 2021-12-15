@@ -63,7 +63,7 @@ const ComponentListItem: React.FC<ComponentListItemProps> = ({
         setComponents((prev) => getNewComponents(prev));
         setEditor((prev) => ({ ...prev, activeComponent: undefined }));
     };
-    console.log("tree", id)
+    // console.log("tree", id)
     return (
         <>
             <ComponentListItemValue
@@ -75,21 +75,22 @@ const ComponentListItem: React.FC<ComponentListItemProps> = ({
                 onClick={onClick}
                 onDeleteClick={onDeleteClick}
                 setComponents={setComponents}
-            />
-            {childComponent.children.map(
-                (child) =>
-                    child && (
-                        <ComponentListItem
-                            key={child}
-                            id={child}
-                            components={components}
-                            depth={depth + 1}
-                            editor={editor}
-                            setEditor={setEditor}
-                            setComponents={setComponents}
-                        />
-                    )
-            )}
+            >
+                {childComponent.children.map(
+                    (child) =>
+                        child && (
+                            <ComponentListItem
+                                key={child}
+                                id={child}
+                                components={components}
+                                depth={depth + 1}
+                                editor={editor}
+                                setEditor={setEditor}
+                                setComponents={setComponents}
+                            />
+                        )
+                )}
+            </ComponentListItemValue>
         </>
     );
 };

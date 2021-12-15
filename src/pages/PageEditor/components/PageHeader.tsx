@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 import AppBar from "@material-ui/core/AppBar";
 import Typography from "@material-ui/core/Typography";
 import Toolbar from "@material-ui/core/Toolbar";
@@ -7,10 +7,9 @@ import TuneIcon from "@material-ui/icons/Tune";
 import GetAppIcon from '@material-ui/icons/GetApp';
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import Fab from '@material-ui/core/Fab';
-
-
-// Generate
-// Options
+import SiteConfig from "../../../types/site";
+import Editor from "../../../types/editor";
+import ArrowBackIcon from '@material-ui/icons/ArrowBack';
 
 const useStyles = makeStyles((theme: Theme) =>
     createStyles({
@@ -31,7 +30,8 @@ const useStyles = makeStyles((theme: Theme) =>
             alignItems: "center",
         },
         title: {
-            display: "inline-block"
+            display: "inline-block",
+            width: "100%"
         },
         fabButton: {
             position: 'absolute',
@@ -44,34 +44,32 @@ const useStyles = makeStyles((theme: Theme) =>
     })
 );
 
-const Header = () => {
+type PageHeaderProps = {
+    site: SiteConfig;
+    setSite: React.Dispatch<React.SetStateAction<SiteConfig>>;
+    editor: Editor;
+    setEditor: React.Dispatch<React.SetStateAction<Editor>>;
+};
+const PageHeader: React.FC<PageHeaderProps> = ({ site, setSite, editor, setEditor }) => {
     const classes = useStyles();
-    const onGenerateClick = () => {};
-    const onOptionsClick = () => {};
+    const onBackClick = () => {
+        setEditor((prev) => ({ ...prev, showLayout: false }))
+    };
 
     return (
         <AppBar position="static" color="inherit">
             <Toolbar className={classes.toolbar}>
                 <div className={classes.titleContainer}>
-                    <Typography variant="h5" component="h1" className={classes.title}>
-                        Editor
-                    </Typography>
-                    <IconButton edge="end" onClick={onOptionsClick}>
-                        <TuneIcon />
+                    <IconButton edge="start" onClick={onBackClick}>
+                        <ArrowBackIcon />
                     </IconButton>
+                    <Typography variant="h5" component="h1" className={classes.title}>
+                        {site.components.find(c => c.id === editor.activePage)?.name}
+                    </Typography>
                 </div>
-                <Fab className={classes.fabButton} color="secondary" size="small" onClick={onGenerateClick}>
-                    <GetAppIcon />
-                </Fab>
-                {/* <ListItem button onClick={onNewPageClick}>
-                    <ListItemIcon>
-                        <AddIcon />
-                    </ListItemIcon>
-                    <ListItemText primary="New page" />
-                </ListItem> */}
             </Toolbar>
         </AppBar>
     );
 }
 
-export default Header;
+export default PageHeader
