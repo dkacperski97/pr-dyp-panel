@@ -74,8 +74,10 @@ const useStyles = makeStyles((theme: Theme) =>
         // toolbar: theme.mixins.toolbar,
         content: {
             flexGrow: 1,
-            backgroundColor: theme.palette.background.default,
-            padding: theme.spacing(3),
+            // backgroundColor: theme.palette.background.default,
+            // padding: theme.spacing(3),
+            maxHeight: "100vh",
+            overflow: "auto"
         },
         componentsList: {
             maxHeight: "400px",

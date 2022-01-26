@@ -21,6 +21,7 @@ import List from "@material-ui/core/List";
 import ListItem from "@material-ui/core/ListItem";
 import ListItemText from "@material-ui/core/ListItemText";
 import { gql, useQuery, useApolloClient, useMutation } from "@apollo/client";
+import SettingsDialog from "./SettingsDialog";
 
 // Generate
 // Options
@@ -90,6 +91,7 @@ const Header: React.FC<HeaderProps> = ({ editor, setEditor, site, setSite }) => 
     const { loading, error, data, refetch } = useQuery<{ sites: string[] }>(GET_SITES);
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
     const [dialogOpen, setDialogOpen] = React.useState(false);
+    const [settingsDialogOpen, setSettingsDialogOpen] = React.useState(false);
     const onOptionsClick = (event: React.MouseEvent<HTMLButtonElement>) => {
         setAnchorEl(event.currentTarget);
     };
@@ -151,6 +153,11 @@ const Header: React.FC<HeaderProps> = ({ editor, setEditor, site, setSite }) => 
         handleClose();
     };
 
+    const openSettings = async () => {
+        setSettingsDialogOpen(true)
+        handleClose();
+    }
+
     return (
         <AppBar position="static" color="inherit">
             <Toolbar className={classes.toolbar}>
@@ -190,7 +197,7 @@ const Header: React.FC<HeaderProps> = ({ editor, setEditor, site, setSite }) => 
                         <MenuItem onClick={removeSite} disabled={!data || data.sites.length < 2}>
                             Remove site
                         </MenuItem>
-                        <MenuItem onClick={handleClose}>Settings</MenuItem>
+                        <MenuItem onClick={openSettings}>Settings</MenuItem>
                     </Menu>
                 </div>
                 <Fab
@@ -202,6 +209,7 @@ const Header: React.FC<HeaderProps> = ({ editor, setEditor, site, setSite }) => 
                     <GetAppIcon />
                 </Fab>
                 <ImageBuilderDialog open={dialogOpen} setOpen={setDialogOpen} />
+                <SettingsDialog open={settingsDialogOpen} setOpen={setSettingsDialogOpen} site={site} setSite={setSite} />
             </Toolbar>
         </AppBar>
     );

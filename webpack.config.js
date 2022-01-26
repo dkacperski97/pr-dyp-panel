@@ -31,16 +31,22 @@ const options = {
           // eager: true,
           requiredVersion: deps["react-dom"],
         },
-        "@material-ui/core": {
-          // eager: true,
+        // "@material-ui/core": {
+        //   // eager: true,
+        //   singleton: true,
+        // },
+        // "@material-ui/icons": {
+        //   singleton: true,
+        // }, 
+        "@material-ui/": {
           singleton: true,
         },
-        "@material-ui/icons": {
-          singleton: true,
-        }, 
         "react-router-dom": {
           singleton: true,
         },
+        "@apollo/client": {
+          singleton: true,
+        }
       }
     })
   ]

@@ -63,14 +63,14 @@ const Pages: React.FC<PagesProps> = ({ site, setSite, editor, setEditor }) => {
                               ...v,
                               templateParameters: {
                                   routes: [
-                                      ...(v.templateParameters?.routes || []),
                                       {
                                           url:
                                               prev.components.length === 0
-                                                  ? ""
-                                                  : `${prev.components.length}`,
+                                                  ? "/"
+                                                  : `/${prev.components.length}`,
                                           component: newPage.id,
                                       },
+                                      ...(v.templateParameters?.routes || []),
                                   ],
                               },
                           }

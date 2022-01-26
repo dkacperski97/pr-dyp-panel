@@ -72,8 +72,8 @@ const VariablesEditor: React.FC<VariablesEditorProps> = ({ component, templateOb
                     ? {
                           ...c,
                           variables: [
+                              new Variable(`variable${c.variables.length + 1}`, 'query', { query: "query { location }" }),
                               ...c.variables,
-                              new Variable(`variable${c.variables.length + 1}`),
                           ],
                       }
                     : c

@@ -88,23 +88,24 @@ const ComponentContainer: React.FC<ComponentContainerProps> = ({ id, components,
             </Card>
         );
     }
-    const ComponentPreview = React.lazy(templateObject.getComponent);
+    // const ComponentPreview = React.lazy(templateObject.getComponent);
     return (
         <div className={classes.container}>
             <Suspense fallback={<div>Loading...</div>}>
                 {(!templateObject.getOptions || component.options) && (
-                    <ComponentPreview>
-                        {component.children.map((child) => (
-                                <ComponentContainer
-                                    key={child}
-                                    id={child}
-                                    components={components}
-                                    setComponents={setComponents}
-                                    setActiveChildComponent={setActiveChildComponent}
-                                />
-                            )
-                        )}
-                    </ComponentPreview>
+                    <div></div>
+                    // <ComponentPreview>
+                    //     {component.children.map((child) => (
+                    //             <ComponentContainer
+                    //                 key={child}
+                    //                 id={child}
+                    //                 components={components}
+                    //                 setComponents={setComponents}
+                    //                 setActiveChildComponent={setActiveChildComponent}
+                    //             />
+                    //         )
+                    //     )}
+                    // </ComponentPreview>
                 )}
             </Suspense>
         </div>

@@ -15,12 +15,19 @@ import Typography from "@material-ui/core/Typography";
 const useStyles = makeStyles((theme: Theme) =>
     createStyles({
         label: {
-            flexGrow: 1,
+            // flexGrow: 1,
+            // minWidth: "200px"
         },
         treeItem: {
             display: "flex",
             alignItems: "center",
-            flexWrap: "wrap"
+            flexWrap: "wrap",
+            width: "100%"
+        },
+        treeItemLabel: {
+            display: "flex",
+            alignItems: "center",
+            width: "100%"
         }
     })
 );
@@ -50,38 +57,51 @@ const ComponentListItemValue: React.FC<ComponentListItemValueProps> = ({
     const [, drop] = useDrop(
         () => ({
             accept: "Common", // TODO templateObject.type,
-            drop: (item: any) => {
-                const c = templates.components.find((c) => c.id === item.id);
-                if (c) {
-                    console.log("drop", id);
-                    setComponents((prev) => {
-                        const variables = c.getOptions
-                            .filter((o) => o.default !== undefined)
-                            .map(
-                                (o) =>
-                                    new Variable(
-                                        o.id,
-                                        o.default!.templateId,
-                                        o.default!.templateParameters
-                                    )
+            drop: (item: any, monitor) => {
+                const didDrop = monitor.didDrop();
+                if (!didDrop) {
+                    const c = templates.components.find((c) => c.id === item.id);
+                    if (c) {
+                        console.log("drop", id);
+                        const getName = (templateId: string, index: number) => `${templateId}${index}`;
+                        const getId = (components: ComponentConfig[], templateId: string) => {
+                            let index = 1;
+                            const pages = components.filter((c) => c.templateId === templateId);
+                            while (pages.find((p) => p.name === getName(templateId, index))) {
+                                index++;
+                            }
+                            return index;
+                        }
+                        setComponents((prev) => {
+                            const variables = c.getOptions
+                                .filter((o) => o.default !== undefined)
+                                .map(
+                                    (o) =>
+                                        new Variable(
+                                            o.id,
+                                            o.default!.templateId,
+                                            o.default!.templateParameters
+                                        )
+                                );
+                            const options: any = {};
+                            variables.forEach((v) => (options[v.name] = v.id));
+                            const index = getId(prev, item.id);
+                            const newComponent = new ComponentConfig(
+                                getName(item.id, index),
+                                item.id,
+                                variables,
+                                options
                             );
-                        const options: any = {};
-                        variables.forEach((v) => (options[v.name] = v.id));
-                        const newComponent = new ComponentConfig(
-                            item.id + (prev.length + 1),
-                            item.id,
-                            variables,
-                            options
-                        );
-                        return [
-                            ...prev.map((c) =>
-                                c.id === id
-                                    ? { ...c, children: [...c.children, newComponent.id] }
-                                    : c
-                            ),
-                            newComponent,
-                        ];
-                    });
+                            return [
+                                ...prev.map((c) =>
+                                    c.id === id
+                                        ? { ...c, children: [...c.children, newComponent.id] }
+                                        : c
+                                ),
+                                newComponent,
+                            ];
+                        });
+                    }
                 }
             },
         }),
@@ -94,7 +114,7 @@ const ComponentListItemValue: React.FC<ComponentListItemValueProps> = ({
             onClick={onClick}
             nodeId={id}
             label={
-                <div>
+                <div className={classes.treeItemLabel}> 
                     <Typography className={classes.label}>{childComponent.name}</Typography>
                     {depth !== 0 && (
                         <IconButton edge="end" onClick={onDeleteClick}>

@@ -1,12 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import Editor from "../../../../types/editor";
 import SiteConfig from "../../../../types/site";
+import { StylesProvider, createGenerateClassName } from '@material-ui/core/styles';
+import { ApolloProvider } from '@apollo/client';
+
 
 // @ts-ignore
 import PageViewer from "output/components";
 
 // @ts-ignore
 import * as SiteContext from "output/SiteContext";
+
+// @ts-ignore
+import useClient from "output/useClient";
+
+const generateClassName = createGenerateClassName({
+    seed: 'custom',
+});
 
 type ViewerProps = {
     site: SiteConfig;
@@ -21,14 +31,19 @@ const Viewer: React.FC<ViewerProps> = ({ site, editor, setEditor }) => {
             setName(editor.activePage ? c.name : undefined);
         }
     }, [editor.activePage])
+    const [client] = useClient();
 
     return (name && PageViewer) ? (
         <>
-            <SiteContext.SiteProvider>
-                <React.Suspense fallback="Loading Button">
-                    <PageViewer name={name} />
-                </React.Suspense>
-            </SiteContext.SiteProvider>
+            <ApolloProvider client={client}>
+                <StylesProvider generateClassName={generateClassName}>
+                    <SiteContext.SiteProvider>
+                        <React.Suspense fallback="Loading Button">
+                            <PageViewer name={name} />
+                        </React.Suspense>
+                    </SiteContext.SiteProvider>
+                </StylesProvider>
+            </ApolloProvider>
             {/* {activeComponent && (
                 <ComponentContainer
                     id={activeComponent}

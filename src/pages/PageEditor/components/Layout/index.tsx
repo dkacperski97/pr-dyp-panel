@@ -15,6 +15,9 @@ const useStyles = makeStyles((theme: Theme) =>
             flexGrow: 1,
             backgroundColor: theme.palette.background.paper,
         },
+        treeView: {
+            width: "100%"
+        }
     })
 );
 
@@ -37,7 +40,7 @@ const Layout: React.FC<LayoutProps> = ({ site, setSite, editor, setEditor }) => 
                 className={classes.layout}
             >
                 <TreeView selected={editor.activeComponent}
-                        expanded={site.components.map(c => c.id)}>
+                        expanded={site.components.map(c => c.id)} className={classes.treeView}>
                     <ComponentListItem
                         id={editor.activePage}
                         depth={0}

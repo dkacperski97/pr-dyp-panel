@@ -3,6 +3,7 @@ import List from "@material-ui/core/List";
 import * as templates from "components";
 import NewComponent from "./NewComponent";
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
+import { ComponentType } from "components/types/component";
 
 const useStyles = makeStyles((theme: Theme) =>
     createStyles({
@@ -24,7 +25,9 @@ const NewComponents: React.FC = () => {
     return (
         <List>
             <div className={classes.grid}>
-            {templates.components.map((component: any) => (
+            {templates.components
+                .filter((c) => c.type !== ComponentType.Hidden)
+                .map((component: any) => (
                 <div key={component.id} style={{ gridColumnEnd: 'span 1' }}>
                     <NewComponent component={component} />
                 </div>

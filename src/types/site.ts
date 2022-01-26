@@ -9,7 +9,7 @@ class SiteConfig implements ISiteConfig {
     options: any;
     components: ComponentConfig[];
 
-	constructor(id: string, variables: Variable[] = [ new Variable('routes', 'routes') ], options: any = {}, components: ComponentConfig[] = []) {
+	constructor(id: string, variables: Variable[] = [ new Variable('routes', 'routes'), new Variable('client', 'apolloClient', { uri: "http://sem6:4000/graphql" }) ], options: any = {}, components: ComponentConfig[] = []) {
 		this.id = id;
 		this.options = options;
 		this.variables = variables;
